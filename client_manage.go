@@ -118,12 +118,13 @@ func (cm *ClientManage) GetClientUrlByID(clientID int) (url string, err error) {
 	return cm.clientMap[clientID].GetUrl(), nil
 }
 
-// GetClientIDs 获取所有客户端ID
-func (cm *ClientManage) GetClientIDs() (clientIDs []int) {
+// GetAllClientList 获取所有客户端列表
+func (cm *ClientManage) GetAllClientList() (clientList []int) {
 	for clientID := range cm.clientMap {
-		clientIDs = append(clientIDs, clientID)
+		clientList = append(clientList, clientID)
 	}
-	return clientIDs
+	return clientList
+
 }
 
 // GetClientCount 获取客户端数量
@@ -179,4 +180,15 @@ func (cm *ClientManage) GetOnlineClientList() (clientIDs []int) {
 		}
 	}
 	return clientIDs
+}
+
+// Close 关闭所有客户端
+func (cm *ClientManage) Close() {
+	for _, client := range cm.clientMap {
+		if err := client.Close(); err != nil {
+			continue
+		}
+	}
+	close(cm.messageChan)
+	close(cm.eventChan)
 }
