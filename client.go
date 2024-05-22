@@ -6,9 +6,9 @@ import (
 	"time"
 )
 
-// NewClientBase 新建WebSocket客户端基类
-func NewClientBase(url string, clientID int) *ClientBase {
-	return &ClientBase{
+// NewClient 新建WebSocket客户端
+func NewClient(url string, clientID int) *Client {
+	return &Client{
 		url:           url,
 		clientID:      clientID,
 		maxRetry:      3,
@@ -20,8 +20,8 @@ func NewClientBase(url string, clientID int) *ClientBase {
 	}
 }
 
-// ClientBase WebSocket客户端基类
-type ClientBase struct {
+// Client WebSocket客户端
+type Client struct {
 	clientID      int             // 客户端ID
 	url           string          // WebSocket服务器地址
 	conn          *websocket.Conn // WebSocket连接
@@ -34,42 +34,42 @@ type ClientBase struct {
 }
 
 // SetMessageChan 设置消息通道
-func (c *ClientBase) SetMessageChan(messageChan chan Message) {
+func (c *Client) SetMessageChan(messageChan chan Message) {
 	c.messageChan = messageChan
 }
 
 // SetEventChan 设置事件通道
-func (c *ClientBase) SetEventChan(eventChan chan Event) {
+func (c *Client) SetEventChan(eventChan chan Event) {
 	c.eventChan = eventChan
 }
 
 // SetMaxRetry 设置最大重试次数 -1为无限重试
-func (c *ClientBase) SetMaxRetry(maxRetry int) {
+func (c *Client) SetMaxRetry(maxRetry int) {
 	c.maxRetry = maxRetry
 }
 
 // SetRetryInterval 设置重试间隔 单位: 秒
-func (c *ClientBase) SetRetryInterval(retryInterval int) {
+func (c *Client) SetRetryInterval(retryInterval int) {
 	c.retryInterval = retryInterval
 }
 
 // GetClientID 获取客户端ID
-func (c *ClientBase) GetClientID() int {
+func (c *Client) GetClientID() int {
 	return c.clientID
 }
 
 // GetUrl 获取WebSocket服务器地址
-func (c *ClientBase) GetUrl() string {
+func (c *Client) GetUrl() string {
 	return c.url
 }
 
 // GetConnectStatus 获取连接状态
-func (c *ClientBase) GetConnectStatus() bool {
+func (c *Client) GetConnectStatus() bool {
 	return c.isConnect
 }
 
 // Connect 连接WebSocket服务器
-func (c *ClientBase) Connect() {
+func (c *Client) Connect() {
 	if c.isConnect {
 		log.Printf("error: %v\n", "client is connected")
 		return
@@ -155,7 +155,7 @@ func (c *ClientBase) Connect() {
 }
 
 // Disconnect 断开
-func (c *ClientBase) Disconnect() (err error) {
+func (c *Client) Disconnect() (err error) {
 	c.isDisconnect = true
 	return c.conn.Close()
 }
