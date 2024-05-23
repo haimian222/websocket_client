@@ -7,14 +7,13 @@ import (
 )
 
 // NewClient 新建WebSocket客户端
-func NewClient(url string, clientID int) *Client {
+func NewClient(url string) *Client {
 	return &Client{
 		url:           url,
-		clientID:      clientID,
 		maxRetry:      3,
 		retryInterval: 3,
-		messageChan:   nil,
-		eventChan:     nil,
+		messageChan:   make(chan Message, 1024),
+		eventChan:     make(chan Event, 1024),
 		isConnect:     false,
 		isDisconnect:  false,
 	}
@@ -22,7 +21,6 @@ func NewClient(url string, clientID int) *Client {
 
 // Client WebSocket客户端
 type Client struct {
-	clientID      int             // 客户端ID
 	url           string          // WebSocket服务器地址
 	conn          *websocket.Conn // WebSocket连接
 	maxRetry      int             // 最大重试次数
@@ -33,14 +31,14 @@ type Client struct {
 	isDisconnect  bool            // 是否断开
 }
 
-// SetMessageChan 设置消息通道
-func (c *Client) SetMessageChan(messageChan chan Message) {
-	c.messageChan = messageChan
+// GetMessageChan 获取消息通道
+func (c *Client) GetMessageChan() chan Message {
+	return c.messageChan
 }
 
-// SetEventChan 设置事件通道
-func (c *Client) SetEventChan(eventChan chan Event) {
-	c.eventChan = eventChan
+// GetEventChan 获取事件通道
+func (c *Client) GetEventChan() chan Event {
+	return c.eventChan
 }
 
 // SetMaxRetry 设置最大重试次数 -1为无限重试
@@ -51,11 +49,6 @@ func (c *Client) SetMaxRetry(maxRetry int) {
 // SetRetryInterval 设置重试间隔 单位: 秒
 func (c *Client) SetRetryInterval(retryInterval int) {
 	c.retryInterval = retryInterval
-}
-
-// GetClientID 获取客户端ID
-func (c *Client) GetClientID() int {
-	return c.clientID
 }
 
 // GetUrl 获取WebSocket服务器地址
@@ -96,8 +89,7 @@ func (c *Client) Connect() {
 		c.isConnect = true
 		if c.eventChan != nil {
 			c.eventChan <- Event{
-				ClientID: c.clientID,
-				Type:     "connect_success",
+				Type: "connect_success",
 			}
 		} else {
 			log.Printf("error: %v\n", "eventChan is nil")
@@ -111,9 +103,8 @@ func (c *Client) Connect() {
 			}
 			if c.messageChan != nil {
 				c.messageChan <- Message{
-					ClientID: c.clientID,
-					Type:     messageType,
-					Data:     messageData,
+					Type: messageType,
+					Data: messageData,
 				}
 			} else {
 				log.Printf("error: %v\n", "messageChan is nil")
@@ -135,8 +126,7 @@ func (c *Client) Connect() {
 		// 连接失败
 		if c.eventChan != nil {
 			c.eventChan <- Event{
-				ClientID: c.clientID,
-				Type:     "connect_fail",
+				Type: "connect_fail",
 			}
 		} else {
 			log.Printf("error: %v\n", "eventChan is nil")
@@ -145,8 +135,7 @@ func (c *Client) Connect() {
 		// 主动断开
 		if c.eventChan != nil {
 			c.eventChan <- Event{
-				ClientID: c.clientID,
-				Type:     "disconnect",
+				Type: "disconnect",
 			}
 		} else {
 			log.Printf("error: %v\n", "eventChan is nil")
